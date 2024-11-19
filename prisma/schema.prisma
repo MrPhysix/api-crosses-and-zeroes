@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model GameState {
+  id          Int           @id @default(autoincrement())
+  ipAdress    String        @unique
+  history     HistoryStep[]
+  currentMove Int           @default(0)
+  status      WinnerStatus  @default(InProgress)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model HistoryStep {
+  id          Int        @id @default(autoincrement())
+  playerMoved Boolean
+  sections    Section[]
+  GameState   GameState? @relation(fields: [gameStateId], references: [id], onDelete: Cascade)
+  gameStateId Int
+}
+
+model Section {
+  id            Int          @id @default(autoincrement())
+  value         Boolean?
+  HistoryStep   HistoryStep? @relation(fields: [historyStepId], references: [id], onDelete: Cascade)
+  historyStepId Int
+}
+
+enum WinnerStatus {
+  InProgress  @map("IN_PROGRESS")
+  Player1Wins @map("PLAYER_1_WINS")
+  Player2Wins @map("PLAYER_2_WINS")
+  Draw        @map("DRAW")
+}
